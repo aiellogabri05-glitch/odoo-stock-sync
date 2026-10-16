@@ -1,0 +1,50 @@
+# Local test stack only: Postgres + Odoo Community 17 + the sync service.
+# Never point ODOO_URL at a company Odoo from this file.
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 5s
+      retries: 20
+
+  odoo:
+    image: odoo:17.0
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8069:8069"
+    environment:
+      HOST: db
+      USER: odoo
+      PASSWORD: odoo
+    # First start creates the test database with the Inventory app and no demo data.
+    command: ["odoo", "-d", "odoo_test", "-i", "stock", "--without-demo=all", "--admin-passwd=admin"]
+    volumes:
+      - odoo-data:/var/lib/odoo
+
+  sync:
+    build: .
+    depends_on:
+      - odoo
+    env_file: .env
+    environment:
+      # Inside the compose network Odoo is reached by service name, not localhost.
+      ODOO_URL: http://odoo:8069
+      SYNC_INTERVAL_SECONDS: ${SYNC_INTERVAL_SECONDS:-300}
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    # Runs the sync every SYNC_INTERVAL_SECONDS (see the Dockerfile CMD).
+
+volumes:
+  db-data:
+  odoo-data:

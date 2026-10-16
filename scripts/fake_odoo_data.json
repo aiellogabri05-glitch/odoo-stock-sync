@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "default_code": "TEST-1001",
+    "name": "Test Widget Blue",
+    "qty_available": 40.0
+  },
+  {
+    "id": 2,
+    "default_code": "TEST-1002",
+    "name": "Test Widget Red",
+    "qty_available": 12.0
+  },
+  {
+    "id": 3,
+    "default_code": "TEST-1003",
+    "name": "Test Gasket Pack",
+    "qty_available": 30.0
+  },
+  {
+    "id": 4,
+    "default_code": "TEST-1004",
+    "name": "Test Bracket Small",
+    "qty_available": 8.0
+  },
+  {
+    "id": 5,
+    "default_code": "TEST-1005",
+    "name": "Test Cable Tie 100pk",
+    "qty_available": 60.0
+  }
+]

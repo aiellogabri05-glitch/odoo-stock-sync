@@ -1,0 +1,32 @@
+# Non-secret settings. Credentials (ODOO_PASSWORD, SLACK_WEBHOOK_URL, SMTP_PASSWORD, ...)
+# come from environment variables, see .env.example.
+
+[alerts]
+# "slack" posts to SLACK_WEBHOOK_URL, "smtp" sends email, "none" only logs.
+channel = "slack"
+
+[logging]
+# Relative paths are resolved from this file's folder.
+path = "logs/sync.log"
+
+# Reorder point: an alert fires when on-hand quantity is at or below it.
+# SKUs must match the Internal Reference (default_code) in Odoo.
+[[products]]
+sku = "TEST-1001"
+reorder_point = 10
+
+[[products]]
+sku = "TEST-1002"
+reorder_point = 10
+
+[[products]]
+sku = "TEST-1003"
+reorder_point = 25
+
+[[products]]
+sku = "TEST-1004"
+reorder_point = 5
+
+[[products]]
+sku = "TEST-1005"
+reorder_point = 15
