@@ -6,16 +6,20 @@ Only the local test instance is used. Never point `ODOO_URL` at a company Odoo w
 
 ## Setup (local Odoo with Docker)
 
-1. Install Docker Desktop and Python 3.12+.
-2. `cp .env.example .env` and set `SLACK_WEBHOOK_URL` (or set `alerts.channel = "none"` in `config.toml` to only log).
-3. `docker compose up -d db odoo` and wait about 2 minutes for Odoo to create `odoo_test` with the Inventory app. Open http://localhost:8069 and log in as `admin` / `admin` to check.
-4. `pip install -r requirements-dev.txt`
-5. Seed five test products with stock: `python scripts/odoo_stock.py seed` (reads `.env`; export the variables or use `set -a; . ./.env; set +a` first).
-6. Check the stock: `python scripts/odoo_stock.py list`
-7. Run the sync once: `python -m app.sync --config config.toml`. Expect `status=ok` and `alerts_sent=0` with the seeded stock.
-8. Lower a product below its reorder point: `python scripts/odoo_stock.py set TEST-1002 4`
-9. Run again. The alert arrives in Slack, and `logs/sync.log` gets a new line with `alerts_sent=1`.
-10. Run the tests: `python -m pytest`. To run as a scheduled service, `docker compose up -d sync` repeats every `SYNC_INTERVAL_SECONDS`.
+1. Install Docker Desktop and Python 3.12+. Copy `.env.example` to `.env` and set `SLACK_WEBHOOK_URL`, or set `alerts.channel = "none"` in `config.toml` to only log.
+2. Start the local Odoo: `docker compose up -d db odoo`. Wait about 2 minutes, then open http://localhost:8069 and log in as `admin` / `admin`.
+3. Install the dev dependencies: `pip install -r requirements-dev.txt`.
+4. Load `.env` into the shell (`set -a; . ./.env; set +a` in Bash) and seed five test products: `python scripts/odoo_stock.py seed`.
+5. Check the stock: `python scripts/odoo_stock.py list`.
+6. Run the sync once: `python -m app.sync --config config.toml`. With the seeded stock, expect `status=ok` and `alerts_sent=0`.
+7. Lower one product below its reorder point: `python scripts/odoo_stock.py set TEST-1002 4`.
+8. Run the sync again. The alert arrives in Slack, and `logs/sync.log` gets a line with `alerts_sent=1`.
+9. Run the tests with `python -m pytest`. To run the sync on a schedule, `docker compose up -d sync` repeats it every `SYNC_INTERVAL_SECONDS`.
+
+## Status
+
+- **Verified:** 20 pytest tests pass. The sync ran end to end against a stand-in XML-RPC server (`scripts/fake_odoo_server.py`, five SKUs) with a local webhook sink for the alert. Stock was healthy on the first run (no alert), then two products were lowered and the alert fired on the second run.
+- **Not yet verified:** the Docker Compose stack and the seed script against a real running Odoo 17. The steps above describe the intended path; they have not been run end to end on Odoo.
 
 ## Files
 
