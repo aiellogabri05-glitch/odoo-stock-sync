@@ -27,7 +27,7 @@ services:
       USER: odoo
       PASSWORD: odoo
     # First start creates the test database with the Inventory app and no demo data.
-    command: ["odoo", "-d", "odoo_test", "-i", "stock", "--without-demo=all", "--admin-passwd=admin"]
+    command: ["odoo", "-d", "odoo_test", "-i", "stock", "--without-demo=all"]
     volumes:
       - odoo-data:/var/lib/odoo
 

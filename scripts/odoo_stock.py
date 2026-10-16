@@ -77,10 +77,19 @@ class Odoo:
                 [{"product_id": product_id, "location_id": location_id, "inventory_quantity": qty}],
                 {"context": quant_ctx},
             )
-        self.models.execute_kw(
-            self.db, self.uid, self.password, "stock.quant", "action_apply_inventory",
-            [[quant_id]], {"context": quant_ctx},
-        )
+        try:
+            self.models.execute_kw(
+                self.db, self.uid, self.password, "stock.quant", "action_apply_inventory",
+                [[quant_id]], {"context": quant_ctx},
+            )
+        except xmlrpc.client.Fault as exc:
+            # Odoo 17 applies the count, then fails to marshal its None return value over XML-RPC.
+            # Only accept that specific fault; anything else is a real error.
+            if "cannot marshal None" not in exc.faultString:
+                raise
+        applied = self.call("stock.quant", "read", [[quant_id]], {"fields": ["quantity"]})[0]["quantity"]
+        if float(applied) != float(qty):
+            sys.exit(f"Stock for product {product_id} is {applied}, expected {qty}: count was not applied.")
 
 
 def cmd_seed(odoo: Odoo) -> None:

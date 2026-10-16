@@ -18,8 +18,21 @@ Only the local test instance is used. Never point `ODOO_URL` at a company Odoo w
 
 ## Status
 
-- **Verified:** 20 pytest tests pass. The sync ran end to end against a stand-in XML-RPC server (`scripts/fake_odoo_server.py`, five SKUs) with a local webhook sink for the alert. Stock was healthy on the first run (no alert), then two products were lowered and the alert fired on the second run.
-- **Not yet verified:** the Docker Compose stack and the seed script against a real running Odoo 17. The steps above describe the intended path; they have not been run end to end on Odoo.
+- **Verified on Odoo 17 in Docker (one run, 5 test products):**
+  - `docker compose up -d db odoo` starts Postgres 16 and Odoo 17. Odoo loaded 34 modules in about 28 s and the registry in about 47 s.
+  - Login over XML-RPC with the `admin` account succeeds.
+  - `scripts/odoo_stock.py seed` created the 5 test products and their stock. `list` shows the expected quantities.
+  - Sync run 1 with healthy stock: 5 products checked, 0 low, 0 alerts, about 1.0 s wall-clock.
+  - After `set TEST-1002 4` in Odoo, sync run 2: 5 products checked, 1 low (TEST-1002, on hand 4, reorder point 10), 1 alert, about 0.9 s wall-clock.
+  - The alert reached a local webhook sink (`scripts/slack_sink.py`) on the host. The sink is a stand-in for Slack, not Slack itself.
+  - Both runs are in `logs/sync.log`, one line each.
+- **Verified earlier:** 20 pytest tests pass. The sync also ran against the stand-in XML-RPC server.
+- **Not yet verified:**
+  - A real Slack incoming webhook.
+  - SMTP delivery.
+  - The `sync` service in Docker Compose. It reads `.env`, and that path has not been run.
+  - Scheduled runs over time.
+- **Known issue fixed during this run:** `docker-compose.yml` passed `--admin-passwd`, which Odoo 17 rejects, so the container exited. The flag was removed. The seed script also failed on `action_apply_inventory` because Odoo cannot serialise its `None` return value over XML-RPC. The count is applied anyway, so the script now accepts that specific fault and then checks the quantity by reading it back.
 
 ## Files
 
